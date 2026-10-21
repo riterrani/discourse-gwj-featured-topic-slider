@@ -1,9 +1,10 @@
 /* global settings */
 
 import Component from "@glimmer/component";
-import { inject as service } from "@ember/service";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
+import { service } from "@ember/service";
+import FeaturedTopicSlider from "./featured-topic-slider";
 import { isRouteEnabled } from "../lib/gwj-slider-placement";
 
 export default class FeaturedTopicSliderMount extends Component {
@@ -76,4 +77,19 @@ export default class FeaturedTopicSliderMount extends Component {
   get cacheContext() {
     return `${this.currentPathname || "/"}::${this.placement}`;
   }
+
+  <template>
+    {{#if this.shouldRender}}
+      {{#if this.requiresDynamicPlacement}}
+        <div
+          class="gwj-featured-topic-slider-anchor"
+          data-featured-topic-slider-anchor="dynamic"
+        >
+          <FeaturedTopicSlider @cacheContext={{this.cacheContext}} />
+        </div>
+      {{else}}
+        <FeaturedTopicSlider @cacheContext={{this.cacheContext}} />
+      {{/if}}
+    {{/if}}
+  </template>
 }

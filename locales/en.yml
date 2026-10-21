@@ -1,11 +1,10 @@
 en:
-  js:
-    featured_topic_slider:
-      region_label: "Featured topics"
-      previous_label: "Previous featured topic"
-      next_label: "Next featured topic"
-      autoplay_pause: "Pause autoplay"
-      autoplay_play: "Resume autoplay"
-      autoplay_announcement: "Featured topics slider is now autoplaying."
-      loading: "Loading featured topics..."
-      no_topics: "No featured topics available."
+  featured_topic_slider:
+    region_label: "Featured topics"
+    previous_label: "Previous featured topic"
+    next_label: "Next featured topic"
+    autoplay_pause: "Pause autoplay"
+    autoplay_play: "Resume autoplay"
+    autoplay_announcement: "Featured topics slider is now autoplaying."
+    loading: "Loading featured topics..."
+    no_topics: "No featured topics available."

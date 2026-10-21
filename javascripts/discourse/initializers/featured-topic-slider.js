@@ -14,7 +14,7 @@ export default {
   name: "gwj-featured-topic-slider",
 
   initialize() {
-    withPluginApi("1.8.0", (api) => {
+    withPluginApi((api) => {
       const themeSettings = settings || {};
       const state = {
         anchor: null,

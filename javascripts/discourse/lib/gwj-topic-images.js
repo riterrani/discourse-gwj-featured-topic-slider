@@ -1,4 +1,4 @@
-import { getURLWithCDN } from "discourse-common/lib/get-url";
+import { getURLWithCDN } from "discourse/lib/get-url";
 
 export function resolveTopicImage(topic, site) {
   if (!topic) {

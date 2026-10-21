@@ -1,8 +1,9 @@
 {
   "name": "GWJ Featured Topic Slider",
-  "about_url": "https://github.com/gaz/discourse-gwj-featured-topic-slider",
-  "license_url": "https://github.com/gaz/discourse-gwj-featured-topic-slider/blob/main/LICENSE",
+  "about_url": "https://github.com/glozano/discourse-gwj-featured-topic-slider",
+  "license_url": "https://github.com/glozano/discourse-gwj-featured-topic-slider/blob/main/LICENSE",
   "component": true,
   "authors": "GWJ Community",
-  "theme_version": "0.1"
+  "theme_version": "0.2",
+  "minimum_discourse_version": "2026.6.0-latest"
 }

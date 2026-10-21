@@ -1,16 +1,23 @@
-/* global settings */
+/* global settings, themePrefix */
 
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { on } from "@ember/modifier";
 import { action } from "@ember/object";
-import { inject as service } from "@ember/service";
-import { htmlSafe } from "@ember/template";
-import { escapeExpression } from "@ember/string";
+import didInsert from "@ember/render-modifiers/modifiers/did-insert";
+import didUpdate from "@ember/render-modifiers/modifiers/did-update";
+import willDestroy from "@ember/render-modifiers/modifiers/will-destroy";
+import { service } from "@ember/service";
+import { trustHTML } from "@ember/template";
+import getURL from "discourse/lib/get-url";
 import { emojiUnescape } from "discourse/lib/text";
-import I18n from "I18n";
+import { escapeExpression } from "discourse/lib/utilities";
+import categoryBadge from "discourse/ui-kit/helpers/d-category-badge";
+import icon from "discourse/ui-kit/helpers/d-icon";
+import formatDate from "discourse/ui-kit/helpers/d-format-date";
+import I18n, { i18n } from "discourse-i18n";
 import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
-import getURL from "discourse-common/lib/get-url";
 
 const TOPIC_CACHE = new Map();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -94,13 +101,10 @@ export default class FeaturedTopicSliderComponent extends Component {
       const fancyTitle = topic.fancy_title;
       let safeTitle;
       if (typeof fancyTitle === "string" && fancyTitle.trim().length > 0) {
-        safeTitle = htmlSafe(emojiUnescape(fancyTitle));
+        safeTitle = trustHTML(emojiUnescape(fancyTitle));
       } else {
         const rawTitle = topic.title || "";
-        const escaped = escapeExpression(rawTitle);
-        const withEmoji =
-          typeof emojiUnescape === "function" ? emojiUnescape(escaped) : escaped;
-        safeTitle = htmlSafe(withEmoji);
+        safeTitle = trustHTML(emojiUnescape(escapeExpression(rawTitle)));
       }
 
       return {
@@ -362,7 +366,7 @@ export default class FeaturedTopicSliderComponent extends Component {
       return null;
     }
 
-    return htmlSafe(
+    return trustHTML(
       `--gwj-parallax-image:${offsets.image}px;`
     );
   }
@@ -441,4 +445,144 @@ export default class FeaturedTopicSliderComponent extends Component {
       this.#motionPreferenceDisposer = null;
     }
   }
+
+  <template>
+    <div
+      class="gwj-featured-topic-slider-wrapper"
+      data-featured-topic-slider="true"
+      role="region"
+      aria-label={{i18n (themePrefix "featured_topic_slider.region_label")}}
+      aria-busy={{this.isLoading}}
+      {{didInsert this.loadTopics}}
+      {{didUpdate this.handleSignatureChange this.fetchSignature}}
+      style={{this.sliderInlineStyle}}
+    >
+      <div class="gwj-featured-topic-slider-wrapper__header">
+        {{#if this.showHeading}}
+          <h2 class="gwj-featured-topic-slider-wrapper__heading">
+            {{this.themeSettings.title_text}}
+          </h2>
+        {{/if}}
+
+        {{#if this.showControls}}
+          <div class="gwj-featured-topic-slider-wrapper__controls">
+            <button
+              type="button"
+              class="gwj-featured-topic-slider-wrapper__control"
+              aria-label={{i18n (themePrefix "featured_topic_slider.previous_label")}}
+              aria-controls={{this.sliderDomId}}
+              {{on "click" this.focusPrev}}
+              disabled={{this.isPrevDisabled}}
+            >
+              {{icon "angle-left"}}
+            </button>
+            <button
+              type="button"
+              class="gwj-featured-topic-slider-wrapper__control"
+              aria-label={{i18n (themePrefix "featured_topic_slider.next_label")}}
+              aria-controls={{this.sliderDomId}}
+              {{on "click" this.focusNext}}
+              disabled={{this.isNextDisabled}}
+            >
+              {{icon "angle-right"}}
+            </button>
+          </div>
+        {{/if}}
+      </div>
+
+      {{#if this.isLoading}}
+        <div
+          class="gwj-featured-topic-slider-wrapper__viewport gwj-featured-topic-slider-wrapper__viewport--skeleton"
+          aria-hidden="true"
+        >
+          <div class="gwj-featured-topic-slider-wrapper__track">
+            {{#each this.skeletonPlaceholders as |index|}}
+              <article
+                class="gwj-featured-topic-slider-wrapper__card gwj-featured-topic-slider-wrapper__card--skeleton"
+              >
+                <div class="gwj-featured-topic-slider-wrapper__media">
+                  <div class="gwj-featured-topic-slider-wrapper__skeleton-block"></div>
+                </div>
+                <div class="gwj-featured-topic-slider-wrapper__body">
+                  <div class="gwj-featured-topic-slider-wrapper__skeleton-line gwj-featured-topic-slider-wrapper__skeleton-line--title"></div>
+                  <div class="gwj-featured-topic-slider-wrapper__skeleton-line gwj-featured-topic-slider-wrapper__skeleton-line--meta"></div>
+                </div>
+              </article>
+            {{/each}}
+          </div>
+        </div>
+      {{else if this.hasTopics}}
+        <div
+          id={{this.sliderDomId}}
+          class="gwj-featured-topic-slider-wrapper__viewport"
+          role="list"
+          {{didInsert this.registerViewport}}
+          {{willDestroy this.unregisterViewport}}
+        >
+          <div class="gwj-featured-topic-slider-wrapper__track">
+            {{#each this.topicCards as |card index|}}
+              <article
+                class="gwj-featured-topic-slider-wrapper__card"
+                data-slider-index={{index}}
+                role="listitem"
+                style={{this.cardParallaxStyle index}}
+              >
+                <a
+                  href={{card.url}}
+                  class="gwj-featured-topic-slider-wrapper__card-link"
+                >
+                  <div class="gwj-featured-topic-slider-wrapper__media">
+                    {{#if card.image}}
+                      <img
+                        src={{card.image.url}}
+                        alt={{card.image.alt}}
+                        loading="lazy"
+                      />
+                    {{else}}
+                      <div class="gwj-featured-topic-slider-wrapper__media--fallback">
+                        {{icon "cannabis"}}
+                      </div>
+                    {{/if}}
+                  </div>
+                  <div class="gwj-featured-topic-slider-wrapper__body">
+                    <h3
+                      class="gwj-featured-topic-slider-wrapper__title"
+                      aria-label={{card.title}}
+                    >
+                      {{card.titleHtml}}
+                    </h3>
+
+                    {{#unless this.themeSettings.hide_tag_chip}}
+                      {{#if card.tags.length}}
+                        <span class="gwj-featured-topic-slider-wrapper__tag">
+                          {{card.tags.[0]}}
+                        </span>
+                      {{/if}}
+                    {{/unless}}
+
+                    <div class="gwj-featured-topic-slider-wrapper__meta">
+                      {{#if card.category}}
+                        <span class="gwj-featured-topic-slider-wrapper__category">
+                          {{categoryBadge card.category}}
+                        </span>
+                      {{/if}}
+                      {{#if card.lastPostedAt}}
+                        <span class="gwj-featured-topic-slider-wrapper__time">
+                          {{formatDate card.lastPostedAt format="tiny"}}
+                        </span>
+                      {{/if}}
+                    </div>
+                  </div>
+                </a>
+              </article>
+            {{/each}}
+          </div>
+        </div>
+      {{else}}
+        <div class="gwj-featured-topic-slider-wrapper__status">
+          {{i18n (themePrefix "featured_topic_slider.no_topics")}}
+        </div>
+      {{/if}}
+    </div>
+  </template>
 }
