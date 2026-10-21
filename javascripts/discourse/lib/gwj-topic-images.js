@@ -20,6 +20,6 @@ export function resolveTopicImage(topic, site) {
 
   return {
     url: getURLWithCDN(url),
-    alt: topic.fancy_title || topic.title,
+    alt: topic.title || topic.fancy_title,
   };
 }
